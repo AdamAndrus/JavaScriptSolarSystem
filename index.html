@@ -1,6 +1,7 @@
 <body></body>
 <script src="http://gamingJS.com/Three.js"></script>
 <script src="http://gamingJS.com/ChromeFixes.js"></script>
+<script src="http://gamingJS.com/Scoreboard.js"></script>
 <script>
   // This is where stuff in our game will happen:
   var scene = new THREE.Scene();
@@ -28,32 +29,45 @@
   scene.add(ambient);
   var sunlight = new THREE.PointLight(0xffffff, 5, 1000);
   sun.add(sunlight);
+//I added this scoreboard based on file proximity
+/**I copy and pasted it from another project and library and deleted all but the
+help portion**/
+  var scoreboard = new Scoreboard();
+  scoreboard.help(
+      "Press C to change camera. " +
+      "Press the Space bar to also change camera. " +
+      "Press P to pause. " +
+      "Change speed with 1, 2, or 3. "
+    );
   //other planets
 var surface = new THREE.MeshPhongMaterial({ambient: 0x1a1a1a, color: 0x0000cd})
 var planet = new THREE.SphereGeometry(20, 20, 15);
 var earth = new THREE.Mesh(planet, surface);
 earth.position.set(250, 0, 0);
 scene.add(earth);
-var surface = new THREE.MeshPhongMaterial({ambient: 0x1a1a1a, color: 0xb22222})
-var planet = new THREE.SphereGeometry(20, 20, 15);
-var mars = new THREE.Mesh(planet, surface);
-mars.position.set(500, 0, 0);
-scene.add(mars);
-// Now, show what the camera sees on the screen:
-  clock = new THREE.Clock();
+var surface = new THREE.MeshPhongMaterial({ambient: 0x1a1a1a, color: 0xbffffff})
+var planet = new THREE.SphereGeometry(15, 30, 25);
+var moon = new THREE.Mesh(planet, surface);
+//Adding new code to MOON
+var moon_orbit = new THREE.Object3D();
+earth.add(moon_orbit); //Frame of Reference - moon is centered on Earth
+moon_orbit.add(moon);
+moon.position.set(0, 100, 0);
+moon_orbit.add(earth_cam);
+earth_cam.rotation.set(Math.PI/2, 0, 0);
+//This next code will allow us to pause
+  var time = 0;
+      speed = 1;
+      pause = false;
   function animate() {
     requestAnimationFrame(animate);
-    var time = clock.getElapsedTime();
-    var e_angle = time * 0.8;
+    renderer.render(scene, camera);
+    if (pause) return;
+    time = time + speed;
+    var e_angle = time * 0.001;
     earth.position.set(250* Math.cos(e_angle), 250* Math.sin(e_angle), 0);
-    var m_angle = time * 0.3;
-    mars.position.set(500* Math.cos(m_angle), 500* Math.sin(m_angle), 0);
-    var y_diff = mars.position.y - earth.position.y,
-        x_diff = mars.position.x - earth.position.x,
-        angle = Math.atan2(x_diff, y_diff);
-     earth_cam.rotation.set(Math.PI/2, -angle, 0);
-     earth_cam.position.set(earth.position.x, earth.position.y, 22);
-     renderer.render(scene, camera);
+    var m_angle = time * 0.02;
+    moon_orbit.rotation.set(0, 0, m_angle);
   }
   animate();
   var stars = new THREE.Geometry();
@@ -71,11 +85,16 @@ scene.add(mars);
   scene.add(star_system);
   document.addEventListener("keydown", function(event) {
     var code = event.keyCode;
-    if (code == 65) { //A
-      camera = above_cam;
-    }
-    if (code == 69) { // E
-      camera = earth_cam;
-    }
+    if (code == 67) changeCamera(); // C
+    if (code == 32) changeCamera(); // space
+    if (code == 80) pause = !pause; // P
+    if (code == 49) speed = 1; //1
+    if (code == 50) speed = 2; //2
+    if (code == 51) speed = 10; //3
   });
+  function changeCamera() {
+    if (camera == above_cam) camera = earth_cam;
+    else camera = above_cam;
+    }
 </script>
+
